@@ -21,7 +21,7 @@ as described below.
    genotypes, corrects what it can, and reports every dropped marker with the
    reason.
 2. **Independent signals.** Runs GCTA-COJO and keeps only signals that are
-   significant both jointly and marginally (Rowan et al. 2024). If the joint
+   significant both jointly and marginally ([Rowan et al. 2024](https://doi.org/10.1111/eva.13666)). If the joint
    model is unstable, meaning that the median ratio of joint to marginal
    effects among the kept signals exceeds 2, independent loci are taken by
    LD clumping in PLINK2 instead.
