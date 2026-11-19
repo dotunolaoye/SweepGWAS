@@ -143,6 +143,11 @@ SweepGWAS/
 
 The functions in `R/` are general and can be used on any dataset.
 
+## How to cite
+
+Olaoye, D. (2026). *SweepGWAS* [Computer software]. Zenodo.
+https://doi.org/10.5281/zenodo.24380048
+
 ## Licence
 
 SweepGWAS is released under the MIT License (see [`LICENSE`](LICENSE)).
