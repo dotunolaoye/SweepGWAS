@@ -1,5 +1,7 @@
 # SweepGWAS
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24380048.svg)](https://doi.org/10.5281/zenodo.24380048)
+
 An R/Shiny application that tests whether independent GWAS signals lie closer
 to selection-scan regions than chance would predict. It checks the GWAS
 alleles against the genotypes, resolves independent signals, and runs a
