@@ -1,0 +1,14 @@
+{
+  "title": "SweepGWAS",
+  "upload_type": "software",
+  "description": "R/Shiny application that tests whether independent GWAS signals lie closer to selection-scan regions than chance would predict, with a chance baseline drawn from the markers that were actually tested.",
+  "creators": [
+    {
+      "name": "Olaoye, Dotun",
+      "affiliation": "University of Missouri"
+    }
+  ],
+  "license": "mit",
+  "access_right": "open",
+  "keywords": ["GWAS", "selection scan", "convergence", "permutation test", "R", "Shiny"]
+}
