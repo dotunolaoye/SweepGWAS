@@ -1,0 +1,275 @@
+<style>
+  .guide-page { max-width: 860px; font-size: 0.92rem; line-height: 1.55; color: #3A3F46; }
+  .guide-page h2 { font-size: 1.15rem; font-weight: 600; margin: 1.8rem 0 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #E4E1DB; color: #20242B; }
+  .guide-page h3 { font-size: 1rem; font-weight: 600; margin: 1.2rem 0 0.35rem; color: #20242B; }
+  .guide-page h4 { font-size: 0.92rem; font-weight: 600; margin: 0.9rem 0 0.25rem; color: #20242B; }
+  .guide-page p, .guide-page ul, .guide-page ol { margin-bottom: 0.55rem; }
+  .guide-page table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin: 0.4rem 0 0.8rem; }
+  .guide-page th, .guide-page td { border-bottom: 1px solid #E4E1DB; padding: 0.3rem 0.45rem; text-align: left; vertical-align: top; }
+  .guide-page th { background: #F3F6F8; font-weight: 600; }
+  .guide-page .box { background: #F3F6F8; border-left: 3px solid #0072B2; padding: 0.55rem 0.8rem; margin: 0.5rem 0 0.9rem; }
+  .guide-page .fig { margin: 0.5rem 0 0.9rem; max-width: 720px; }
+  .guide-page .fig img { width: 100%; height: auto; }
+  .guide-page .cap { font-size: 0.8rem; color: #6B7280; }
+  .guide-page .num { font-variant-numeric: tabular-nums; }
+  .guide-page code { font-size: 0.82rem; }
+  .guide-page .refs { font-size: 0.82rem; padding-left: 0; list-style: none; }
+  .guide-page .refs li { margin-bottom: 0.3rem; padding-left: 1.4em; text-indent: -1.4em; overflow-wrap: anywhere; }
+  .guide-table-wrap { overflow-x: auto; }
+</style>
+<div class="guide-page">
+
+
+<h2>1. What the app tests</h2>
+<p>A GWAS finds markers associated with a trait. A selection scan identifies genomic regions, the selection-scan regions, that show signatures of past selection. When GWAS signals lie near those regions, the two are said to <b>converge</b>. This overlap is often taken as evidence that the trait was under selection.</p>
+<div class="box">The app tests whether more independent GWAS signals lie near selection-scan regions than expected by chance.</div>
+<p>Three choices decide the answer. The app makes each one explicit:</p>
+<ol>
+  <li><b>What counts as a signal.</b> Markers in strong linkage disequilibrium (LD) with each other carry the same association. Counting them separately inflates the overlap. The app therefore first reduces them to independent signals.</li>
+  <li><b>How close counts as near.</b> The distance threshold, set from LD decay.</li>
+  <li><b>What chance produces.</b> The null model used in the permutation test.</li>
+</ol>
+
+<h2>2. Inputs (left sidebar)</h2>
+<div class="guide-table-wrap"><table>
+  <tr><th style="width:26%">Step</th><th>What to upload or set</th></tr>
+  <tr><td>1. GWAS summary statistics</td><td>One row per marker. Each row gives the marker ID, chromosome and position. It also gives the effect allele, the other allele and the effect-allele frequency. The last columns are the effect size, p-value and sample size. Likely columns are preselected by name and can be changed in the menus that appear after upload.</td></tr>
+  <tr><td>2. Genotype data</td><td>PLINK bed/bim/fam files, or a VCF file, which is converted to PLINK format. The genotypes supply the LD that COJO and clumping require and the allele frequencies used by the allele check.</td></tr>
+  <tr><td>3. Selection-scan regions</td><td>A CSV file of regions with the columns chr, start, end and method. The regions can come from any selection scan, for example XP-nSL (Szpiech et al. 2021), RAiSD (Alachiotis and Pavlidis 2018) or pcadapt (Priv&eacute; et al. 2020).</td></tr>
+  <tr><td>Optional: placement inputs</td><td>A genetic map and a gene annotation, used only by the region placement diagnostic and not by the convergence test.</td></tr>
+  <tr><td>4. Parameters</td><td>The distance threshold in bp is required and comes from LD decay. The COJO p-value threshold defaults to 0.05 divided by the number of markers. The number of permutations defaults to 1,000. A checkbox records whether the GWAS was run on the same genotypes.</td></tr>
+</table></div>
+<p>The &ldquo;Load maize case-study example&rdquo; button in the sidebar loads the maize data, sets the distance threshold to 10 kb, and runs the full analysis.</p>
+<h3>Why the distance threshold has no default</h3>
+<p>A signal counts as convergent when it lies within the distance threshold of a region. LD decay measures how far apart two markers can be and remain correlated. It is therefore the distance over which a selected variant and a GWAS signal can reflect the same locus. A larger, arbitrary distance threshold places so much of the genome near a region that almost any signal counts as convergent. In maize, a 500 kb threshold raised chance convergence to 91.0%.</p>
+<div class="fig">
+<img src="guide_figs/fig_distance_threshold.png" alt="Diagram of a selection-scan region with the distance threshold extending on each side; one signal falls inside, one outside">
+<p class="cap">A signal is convergent if it falls inside a region or within the distance threshold of either end. (Diagram, not data.)</p>
+</div>
+
+<h2>3. Allele check tab</h2>
+<p>Before any other step, each GWAS marker is matched to the genotype data and its alleles are oriented. A GWAS file can report alleles on the opposite DNA strand, or report the other allele as the effect allele. If this is not corrected, the effect signs no longer match the LD estimated from the genotypes. The COJO joint estimates are then wrong.</p>
+<h3>The summary numbers</h3>
+<div class="guide-table-wrap"><table>
+  <tr><th style="width:33%">Number shown</th><th>Meaning</th></tr>
+  <tr><td>Input markers</td><td>Rows in the GWAS file</td></tr>
+  <tr><td>Markers passing the check</td><td>Markers matched and oriented, and carried to the next step</td></tr>
+  <tr><td>Match rate</td><td>Passing markers as a share of input markers</td></tr>
+  <tr><td>Markers dropped (all reasons)</td><td>Input markers minus passing markers, with the count for each reason listed below the summary numbers</td></tr>
+  <tr><td>A/T and C/G markers resolved</td><td>Strand-ambiguous markers whose orientation was settled by allele frequency</td></tr>
+  <tr><td>A/T and C/G markers dropped as unresolvable</td><td>Strand-ambiguous markers with frequency between 0.45 and 0.55, where frequency cannot tell the strands apart</td></tr>
+  <tr><td>Frequencies corrected</td><td>Markers whose reported frequency matched the frequency of the other allele in the genotypes (within 0.05), and was corrected rather than dropped</td></tr>
+</table></div>
+<h3>Why a marker is dropped</h3>
+<ul>
+  <li><b>Not a SNP:</b> an insertion, deletion or missing-allele code such as N.</li>
+  <li><b>Not found in the genotype data:</b> the marker ID does not appear in the genotypes.</li>
+  <li><b>Alleles do not match:</b> the GWAS alleles cannot be matched to the genotype alleles, even on the opposite strand.</li>
+  <li><b>Frequency disagrees:</b> the GWAS frequency differs from the genotype frequency by more than 0.05. Swapping the alleles does not explain the difference.</li>
+  <li><b>A/T or C/G too close to 50%:</b> an A/T or C/G marker with a frequency between 0.45 and 0.55, where frequency cannot show which strand was used. When the sidebar box for a GWAS run on the same genotypes is ticked, a strand difference is not possible. These markers are then matched by allele. None are dropped.</li>
+</ul>
+<p>The <b>Dropped markers</b> table lists every dropped marker with its reason, and can be downloaded.</p>
+
+<h2>4. COJO signals tab</h2>
+<p>Many significant markers can lie in one LD block and reflect a single association. COJO is the conditional and joint analysis in GCTA (Yang et al. 2011, 2012). It selects markers stepwise and tests each one conditional on those already selected. It then fits the selected markers jointly.</p>
+<h3>The rule box at the top</h3>
+<ul>
+  <li><b>Kept:</b> signals significant both jointly (in the COJO model) and marginally (in the original GWAS).</li>
+  <li><b>Removed:</b> signals significant only jointly. Such signals can arise when correlated markers are assigned large effects of opposite sign that offset each other, rather than from separate associations.</li>
+  <li><b>Stability check:</b> among the kept signals, the median ratio of joint to marginal effect. When this ratio exceeds 2, the joint model is treated as unstable (effects inflated by collinear markers). The limit of 2 is the tool&rsquo;s default. It treats joint effects more than double their marginal effects as unstable. The app then takes independent loci by <b>LD clumping</b> in PLINK 2 (Chang et al. 2015) instead. The clumping settings are index p below the COJO threshold, secondary p below 0.0001, r&sup2; of 0.1 and a 250 kb window. The box then turns amber and states the reason.</li>
+</ul>
+<h3>Marginal vs. joint significance plot</h3>
+<div class="fig">
+<img src="guide_figs/fig_cojo_scatter.png" alt="Illustrative COJO scatter: points near the diagonal kept, points far above removed">
+<p class="cap">Illustration of the plot layout, not data. When clumping is used, the note under the plot states that none of the COJO signals entered the test.</p>
+</div>
+<p>The <b>Independent signals used in the test</b> table lists the signals, or clumped loci, that enter the convergence test. This table and the full GCTA output can both be downloaded.</p>
+
+<h2>5. Convergence tab</h2>
+<h3>The verdict and the four summary numbers</h3>
+<p>The verdict states the number of signals within the distance threshold of a region, the share expected by chance and the p-value. It then gives one of three conclusions: more than chance (convergence), fewer than chance (a shortfall), or consistent with chance. A caveat is added when there are fewer than 10 signals, because the test then has little power. A caveat is also added when the two null models reach different conclusions.</p>
+<div class="guide-table-wrap"><table>
+  <tr><th style="width:33%">Number shown</th><th>Meaning</th></tr>
+  <tr><td>Convergent signals</td><td>Signals within the distance threshold of a region, out of all independent signals</td></tr>
+  <tr><td>Observed share</td><td>The same count as a percentage</td></tr>
+  <tr><td>Expected by chance</td><td>Mean share across permutations under the marker-based null</td></tr>
+  <tr><td>p-value (marker-based null)</td><td>(Number of permutations with a count at or above the observed count, plus 1) divided by (number of permutations, plus 1). The p-value is therefore never zero (Phipson and Smyth 2010).</td></tr>
+</table></div>
+
+<h3>How the permutation test works</h3>
+<ol>
+  <li>Count the observed convergent signals.</li>
+  <li>Move each signal to a random position on its own chromosome and count again. The regions stay fixed. The two ways of drawing positions are described in the table below.</li>
+  <li>Repeat this 1,000 times by default. The counts form the null distribution, that is, the counts expected by chance alone.</li>
+  <li>When few permutations reach the observed count, the overlap is unlikely to be due to chance.</li>
+</ol>
+
+<h3>The null-model check: two ways to draw random positions</h3>
+<div class="guide-table-wrap"><table>
+  <tr><th style="width:22%">Null</th><th>Random positions drawn from</th><th style="width:38%">Consequence</th></tr>
+  <tr><td>Marker-based (reported)</td><td>The tested markers on the same chromosome</td><td>A GWAS can only detect signals where markers were tested. Random signals are therefore placed only where real signals could arise.</td></tr>
+  <tr><td>Uniform (check)</td><td>Any position between the start of the chromosome and its last tested marker</td><td>Marker positions are ignored. When regions lie where markers are dense, this null understates chance and overstates convergence. When regions lie where markers are sparse, it does the reverse.</td></tr>
+</table></div>
+<p>The box reads &ldquo;Null models agree&rdquo;, or turns amber and reads &ldquo;Null models disagree&rdquo; with the direction in which the uniform null errs. In maize, the uniform null declared convergence for 50.1% to 92.0% of random signal sets. Across the three case-study data sets, the marker-based null declared convergence for 2.7% to 5.6%, close to the expected 5%.</p>
+
+<h3>Region placement diagnostic</h3>
+<p>This section of the Convergence tab shows which genome features predict where the regions lie. This explains a disagreement between the two null models. It is described in full in section 6.</p>
+
+<h3>Manhattan plot and selection-scan regions</h3>
+<ul>
+  <li><b>Upper panel:</b> every tested marker, with &minus;log10(p) plotted against position and a dashed line at the significance threshold. Signals within the distance threshold of a region are orange diamonds. Other signals are blue circles.</li>
+  <li><b>Lower panel:</b> the regions, one track per scan method, with a faint line from each signal down through the tracks to show which region it lies near.</li>
+  <li>A single chromosome can be selected and is then shown in Mb. Dragging across the plot zooms in. Hovering shows the details of a signal or region. For very large panels, markers with p above 0.001 are thinned at random for speed. Every marker with p below 0.001 is always drawn.</li>
+</ul>
+
+<h3>Permutation distributions under both null models</h3>
+<div class="fig">
+<img src="guide_figs/fig_permutation.png" alt="Illustrative permutation histograms: blue marker-based null centred lower, grey uniform outline centred higher, observed count marked">
+<p class="cap">Illustration, not data. The orange line marks the observed count. The shaded area covers the counts at or above it. The p-value uses these counts. In this example, the observed count lies above every replicate of the marker-based null (convergence) but in the middle of the uniform null (no convergence). The two null models therefore disagree. N is the number of independent signals.</p>
+</div>
+
+<h3>Distance from each signal to the nearest region (table)</h3>
+<p>One row per independent signal. Each row gives the chromosome, lead marker and position of the signal. It also states whether the signal lies within the distance threshold of a region and gives its distance in bp to the nearest region. A distance of 0 means inside a region. A blank means no region on that chromosome. The table can be downloaded as the convergence detail CSV.</p>
+
+<h2>6. The region placement diagnostic, in detail</h2>
+<p>This section of the Convergence tab shows which genome features predict where the selection-scan regions lie. This explains a disagreement between the two null models.</p>
+<h3>6.1 What the diagnostic tests</h3>
+<div class="box">For every marker tested in the GWAS, the diagnostic records whether the marker lies within the distance threshold of a selection-scan region. It then tests whether features of the marker and the surrounding genome predict this.</div>
+<p>When marker density, recombination rate or gene density predicts which markers lie near regions, the scan has placed its regions according to that feature. For example, the regions may lie where markers are dense or where recombination is low. An overlap between GWAS signals and those regions may then reflect where the scan calls regions rather than selection on the trait at those loci.</p>
+<p>The answer comes from a logistic regression, a model for a yes or no outcome. Each feature receives a coefficient that shows whether, and how strongly, it raises or lowers the odds of a marker lying near a region.</p>
+
+<h3>6.2 The features</h3>
+<div class="guide-table-wrap"><table>
+  <tr><th style="width:27%">Feature (label in the app)</th><th style="width:38%">What it is</th><th>Why it is included</th></tr>
+  <tr><td>Markers per 100 kb</td><td>How many tested markers fall in the same 100 kb window as this marker</td><td>Tests whether regions lie where markers cluster. Marker density was the strongest predictor in maize.</td></tr>
+  <tr><td>Gap to nearest marker (bp)</td><td>Distance to the closest neighbouring marker</td><td>Local marker spacing, a finer-scale measure of density.</td></tr>
+  <tr><td>Minor allele frequency</td><td>Frequency of the rarer allele, from the GWAS file</td><td>A selective sweep produces an excess of low- and high-frequency derived alleles near the selected site (Fay and Wu 2000). Markers near regions may therefore differ in minor allele frequency.</td></tr>
+  <tr><td>Absolute effect size</td><td>Size of the marker's GWAS effect, ignoring its sign</td><td>Tests whether markers with large effects on the trait lie near regions more often than other markers.</td></tr>
+  <tr><td>Association strength (&minus;log<sub>10</sub> p)</td><td>How significant the marker is in the GWAS, where a higher value means a stronger association</td><td>Tests whether markers associated with the trait, not only the independent signals, lie near regions.</td></tr>
+  <tr><td>Recombination rate (cM/Mb)</td><td>Local recombination per 100 kb window, from an uploaded genetic map (optional)</td><td>Genome scans that summarise statistics in windows tend to find more outliers in low-recombination regions (Booker et al. 2020). This happens even in the absence of selection, because the statistics vary more there.</td></tr>
+  <tr><td>Genes per 100 kb</td><td>Number of gene starts per 100 kb window, from an uploaded GFF3 or GTF file (optional)</td><td>Tests whether regions lie mainly in gene-rich or gene-poor windows.</td></tr>
+</table></div>
+<p>Association strength and effect size relate most directly to the trait. When they predict proximity, markers that affect the trait tend to lie near regions, which is consistent with selection on the trait at those loci. When only marker density or recombination rate predicts proximity, region placement is explained by those features rather than by the trait.</p>
+
+<h3>6.3 Genetic maps and centimorgans</h3>
+<h4>Two positions for every marker</h4>
+<ul>
+  <li><b>Physical position:</b> where the marker lies on the DNA, in base pairs or megabases (Mb).</li>
+  <li><b>Genetic position:</b> its position along the chromosome measured by recombination, in centimorgans (cM).</li>
+</ul>
+<h4>What 1 cM means</h4>
+<ol>
+  <li>During meiosis, each pair of homologous chromosomes exchanges segments. Each exchange is a <b>crossover</b>.</li>
+  <li>Take two markers, A and B, on the same chromosome. A parent carries A<sub>1</sub> with B<sub>1</sub> on one homologous chromosome and A<sub>2</sub> with B<sub>2</sub> on the other.</li>
+  <li>Before the crossovers form, each chromosome is copied into two chromatids. Each crossover involves one chromatid from each homologous chromosome. A crossover between A and B therefore gives four products. Two keep the original combinations, A<sub>1</sub>B<sub>1</sub> and A<sub>2</sub>B<sub>2</sub> (parental). The other two carry new combinations, A<sub>1</sub>B<sub>2</sub> and A<sub>2</sub>B<sub>1</sub> (<b>recombinant</b>).</li>
+  <li>Each gamete inherits one of these products. A meiosis with no crossover between A and B gives only parental products. Over short distances, the share of recombinant gametes across many meioses is therefore half the average number of crossovers between A and B per meiosis.</li>
+  <li>Two markers are <b>1 cM</b> apart when about 1 gamete in 100 is recombinant between them.</li>
+</ol>
+<div class="fig">
+<img src="guide_figs/fig_crossover.png" alt="Diagram of one crossover between two of the four chromatids at markers A and B, giving two parental and two recombinant products of meiosis">
+<p class="cap">One crossover between A and B, involving two of the four chromatids, gives two parental and two recombinant products. When 1 gamete in 100 is recombinant across many meioses, A and B are 1 cM apart. (Diagram, not data.)</p>
+</div>
+<ul>
+  <li>Closer markers recombine less often. A distance of 0.1 cM corresponds to about 1 recombinant in 1,000 gametes.</li>
+  <li>The 1% relationship holds only for short distances. Over long distances, two crossovers between the same markers restore the original combination. The recombinant fraction therefore never exceeds 50%. Map functions, such as those of Haldane (1919) and Kosambi (1943), correct for this when map distances are estimated.</li>
+</ul>
+
+<h3>6.4 Recombination rate as the slope of the map</h3>
+<p>When the genetic position (cM) of each map marker is plotted against its physical position (Mb), the curve never falls. It rises unevenly.</p>
+<div class="fig">
+<img src="guide_figs/fig_genetic_map.png" alt="Illustrative genetic map curve: steep toward both chromosome ends and flat across a central low-recombination stretch around the centromere">
+<p class="cap">Illustration, not data. The slope at any point, in cM per Mb, is the local recombination rate. In maize, crossovers are suppressed across about 100 Mb around each centromere and are frequent toward the chromosome ends (Rodgers-Melnick et al. 2015). The curve is therefore drawn steep toward both ends and flat in the middle, here from about 30 to 70 Mb. Genome scans tend to find more outliers in such low-recombination regions (Booker et al. 2020).</p>
+</div>
+<div class="box"><b>Example:</b> when the genetic position increases from 10 cM to 13 cM over 1 Mb, the rate there is 3 cM/Mb. In a region with very little recombination (a recombination desert), 1 Mb may span only 0.1 cM.</div>
+<h4>How the app computes it</h4>
+<ol>
+  <li>Each chromosome is split into 100 kb windows.</li>
+  <li>The genetic position at the start and end of each window is estimated by linear interpolation between the nearest map markers, because map markers rarely fall exactly on window boundaries.</li>
+  <li>The rate for the window is (cM at the end &minus; cM at the start) divided by the window length in Mb.</li>
+  <li>Map errors are handled in four ways. Any decrease in genetic position along a chromosome is removed by holding the position at its previous highest value. A window that lies partly beyond the ends of the map is measured over the part the map covers. A window that lies entirely beyond them takes the average rate of its chromosome. A chromosome missing from the map takes the average rate of the whole map.</li>
+  <li>Each tested marker receives the rate of its window, which is the &ldquo;Recombination rate (cM/Mb)&rdquo; feature.</li>
+</ol>
+
+<h3>6.5 Reading the coefficients</h3>
+<h4>Sign</h4>
+<div class="guide-table-wrap"><table>
+  <tr><th style="width:22%">Coefficient</th><th>Meaning</th><th style="width:36%">For recombination rate</th></tr>
+  <tr><td>Positive (blue bar, to the right of zero)</td><td>Higher values of the feature make a marker more likely to lie near a region</td><td>Markers near regions lie in higher-recombination windows</td></tr>
+  <tr><td>Negative (grey bar, to the left of zero)</td><td>Higher values make a marker less likely to lie near a region</td><td>Markers near regions lie in lower-recombination windows</td></tr>
+  <tr><td>Close to zero, with an interval that crosses zero</td><td>No consistent effect once the other features are accounted for</td><td>Recombination adds nothing beyond the other features</td></tr>
+</table></div>
+<h4>Size</h4>
+<p>Each feature is standardised before fitting. A coefficient is therefore the change in the log-odds of lying near a region for a one standard deviation (SD) increase in that feature. The coefficients convert to odds as follows:</p>
+<div class="guide-table-wrap"><table class="num">
+  <tr><th>Coefficient</th><th>Odds multiplied by e<sup>coefficient</sup></th><th>In words, per one SD increase</th></tr>
+  <tr><td>+0.5</td><td>1.65</td><td>The odds of lying near a region rise by about 65%</td></tr>
+  <tr><td>0</td><td>1.00</td><td>No change</td></tr>
+  <tr><td>&minus;0.5</td><td>0.61</td><td>The odds fall by about 39%</td></tr>
+</table></div>
+<p>The horizontal line on each bar is a 95% interval from a jackknife over chromosomes, in which the model is refitted with one chromosome left out at a time. A line that crosses zero means the direction of that feature is not consistent across chromosomes.</p>
+
+<h3>6.6 Raw differences against model coefficients</h3>
+<p>A coefficient gives the effect of one feature with the other features held constant. A raw comparison does not. The two can therefore disagree. The maize case study shows this:</p>
+<div class="guide-table-wrap"><table class="num">
+  <tr><th>Measure</th><th>Value</th><th>What it suggests</th></tr>
+  <tr><td>Raw recombination rate, markers near regions against elsewhere</td><td>3.37 against 2.40 cM/Mb</td><td>Markers near regions lie in higher-recombination windows</td></tr>
+  <tr><td>Recombination coefficient with marker density in the model</td><td>0.012 (95% interval &minus;0.05 to 0.07)</td><td>No effect of its own</td></tr>
+  <tr><td>Marker density coefficient</td><td>0.479</td><td>Marker density carries the effect</td></tr>
+</table></div>
+<p>The raw difference in recombination disappeared once marker density was in the model. This indicates that it was carried by marker density. This is consistent with Rodgers-Melnick et al. (2015). They found that maize crossovers are suppressed across about 100 Mb around each centromere and follow gene density. They also found that genotyping-by-sequencing marker density, together with distance from the telomere, explained most of the variation in crossover density. The ApeKI enzyme used for genotyping-by-sequencing is partially sensitive to DNA methylation and has relatively few recognition sites in the major classes of maize retrotransposons (Elshire et al. 2011). Marker density is therefore lower in methylated, repeat-rich DNA, where crossovers are also rare (Rodgers-Melnick et al. 2015). Thus, the coefficient should be read rather than the raw comparison.</p>
+
+<h3>6.7 What the case studies showed</h3>
+<div class="guide-table-wrap"><table class="num">
+  <tr><th>Case</th><th>Strongest predictor</th><th>How predictable (AUC, chromosomes withheld)</th><th>Reading</th></tr>
+  <tr><td>Maize, all regions</td><td>Marker density, positive (0.479)</td><td>0.652</td><td>Regions lie where markers are dense. A uniform null therefore understates chance overlap.</td></tr>
+  <tr><td><i>A. thaliana</i>, RAiSD regions</td><td>Marker density, negative (&minus;1.254), with regions in windows that have 38% fewer markers</td><td>0.803</td><td>Regions lie where markers are sparse. A uniform null therefore overstates chance overlap.</td></tr>
+  <tr><td><i>A. thaliana</i>, pcadapt regions</td><td>Crossovers per 100 kb, positive (0.223)</td><td>0.551</td><td>Placement is only weakly predictable</td></tr>
+</table></div>
+<p>In <i>A. thaliana</i>, recombination entered the model as crossovers per 100 kb rather than as a map slope in cM/Mb. Gene density was not fitted in maize.</p>
+<p>The AUC measures how well the model separates markers near regions from other markers, where 0.5 is no better than chance and 1 is perfect separation. In <i>A. thaliana</i>, association strength did not predict proximity to either set of regions.</p>
+<div class="box"><b>Summary:</b> the diagnostic shows where a scan places its regions, but not why. When genome features predict placement well above chance (an AUC well above 0.5), an overlap with GWAS signals may reflect where the scan calls regions, not selection on the trait. Such an overlap should be interpreted with caution. An overlap that is also found with regions from a second scan method, which places its regions differently, is less likely to reflect the placement of one scan.</div>
+
+<h2>7. Download all tab</h2>
+<ul>
+  <li><b>Report (HTML or PDF):</b> the full analysis in one document. The figures in the reports are static. The reports contain:
+    <ul>
+      <li>the verdict and the rule used for the independent signals</li>
+      <li>the null-model check and the region placement diagnostic</li>
+      <li>the settings, the run time and the software versions</li>
+      <li>Manhattan plots of all chromosomes and of each chromosome</li>
+      <li>the permutation distributions and the signal table</li>
+    </ul>
+  </li>
+  <li><b>All results (.zip):</b> every table, a summary of the run parameters and both reports.</li>
+</ul>
+
+<h2>8. Reading a result, in order</h2>
+<ol>
+  <li><b>Allele check:</b> a low match rate can indicate that the GWAS file and the genotypes do not correspond (different genome builds, marker IDs or panels).</li>
+  <li><b>COJO:</b> whether the joint model was stable or LD clumping was used, and how many independent signals entered the test. Fewer than 10 signals give little power.</li>
+  <li><b>Verdict:</b> the observed share against the share expected by chance, and the p-value.</li>
+  <li><b>Null-model check:</b> whether the two null models agree. When they do not, a test with a uniform null would have reached a different conclusion.</li>
+  <li><b>Placement diagnostic:</b> which features predict where the regions lie.</li>
+  <li><b>Plots and table:</b> which signals converge, near regions from which scan method, and at what distance.</li>
+</ol>
+<div class="box"><b>Summary:</b> convergence is supported only when independent signals lie within an LD-based distance of regions more often than a null model based on marker positions predicts. Even then, it shows co-location rather than proof that the trait was the target of selection.</div>
+
+<h2>References</h2>
+<ul class="refs">
+  <li>Alachiotis N, Pavlidis P (2018) RAiSD detects positive selection based on multiple signatures of a selective sweep and SNP vectors. <i>Communications Biology</i> 1:79. https://doi.org/10.1038/s42003-018-0085-8</li>
+  <li>Booker TR, Yeaman S, Whitlock MC (2020) Variation in recombination rate affects detection of outliers in genome scans under neutrality. <i>Molecular Ecology</i> 29:4274-4279. https://doi.org/10.1111/mec.15501</li>
+  <li>Chang CC, Chow CC, Tellier LC, Vattikuti S, Purcell SM, Lee JJ (2015) Second-generation PLINK: rising to the challenge of larger and richer datasets. <i>GigaScience</i> 4:7. https://doi.org/10.1186/s13742-015-0047-8</li>
+  <li>Elshire RJ, Glaubitz JC, Sun Q, Poland JA, Kawamoto K, Buckler ES, Mitchell SE (2011) A robust, simple genotyping-by-sequencing (GBS) approach for high diversity species. <i>PLoS ONE</i> 6:e19379. https://doi.org/10.1371/journal.pone.0019379</li>
+  <li>Fay JC, Wu CI (2000) Hitchhiking under positive Darwinian selection. <i>Genetics</i> 155:1405-1413. https://doi.org/10.1093/genetics/155.3.1405</li>
+  <li>Haldane JBS (1919) The combination of linkage values and the calculation of distances between the loci of linked factors. <i>Journal of Genetics</i> 8:299-309.</li>
+  <li>Kosambi DD (1943) The estimation of map distances from recombination values. <i>Annals of Eugenics</i> 12:172-175. https://doi.org/10.1111/j.1469-1809.1943.tb02321.x</li>
+  <li>Phipson B, Smyth GK (2010) Permutation p-values should never be zero: calculating exact p-values when permutations are randomly drawn. <i>Statistical Applications in Genetics and Molecular Biology</i> 9:39. https://doi.org/10.2202/1544-6115.1585</li>
+  <li>Priv&eacute; F, Luu K, Vilhj&aacute;lmsson BJ, Blum MGB (2020) Performing highly efficient genome scans for local adaptation with R package pcadapt version 4. <i>Molecular Biology and Evolution</i> 37:2153-2154. https://doi.org/10.1093/molbev/msaa053</li>
+  <li>Rodgers-Melnick E, Bradbury PJ, Elshire RJ, Glaubitz JC, Acharya CB, Mitchell SE, Li C, Li Y, Buckler ES (2015) Recombination in diverse maize is stable, predictable, and associated with genetic load. <i>PNAS</i> 112:3823-3828. https://doi.org/10.1073/pnas.1413864112</li>
+  <li>Szpiech ZA, Novak TE, Bailey NP, Stevison LS (2021) Application of a novel haplotype-based scan for local adaptation to study high-altitude adaptation in rhesus macaques. <i>Evolution Letters</i> 5:408-421. https://doi.org/10.1002/evl3.232</li>
+  <li>Yang J, Lee SH, Goddard ME, Visscher PM (2011) GCTA: a tool for genome-wide complex trait analysis. <i>American Journal of Human Genetics</i> 88:76-82. https://doi.org/10.1016/j.ajhg.2010.11.011</li>
+  <li>Yang J, Ferreira T, Morris AP, Medland SE, et al. (2012) Conditional and joint multiple-SNP analysis of GWAS summary statistics identifies additional variants influencing complex traits. <i>Nature Genetics</i> 44:369-375. https://doi.org/10.1038/ng.2213</li>
+</ul>
+
+
+</div>

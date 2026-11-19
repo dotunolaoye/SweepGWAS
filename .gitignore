@@ -1,0 +1,12 @@
+# PLINK2 and GCTA, placed here by setup_binaries.sh
+bin/
+
+# shinyapps.io account settings
+rsconnect/
+
+# R and OS files
+.Rhistory
+.RData
+.Rproj.user/
+.DS_Store
+Thumbs.db
