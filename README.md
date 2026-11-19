@@ -50,28 +50,37 @@ table can be downloaded, the whole analysis can be downloaded as an HTML or PDF
 report with a Manhattan plot of each chromosome, and all results, both reports
 and a record of the run parameters and stage times come as one zip archive.
 
-## Running it
+## Running it on your own computer
 
-From the repository folder:
+1. **Download SweepGWAS.** On this page, click **Code**, then **Download ZIP**,
+   and unzip it. With Git, `git clone` also works, but Git LFS must be
+   installed, or the example data arrive as small placeholder files.
+2. **Install R** from [CRAN](https://cran.r-project.org), then the packages
+   the app uses:
 
-```r
-shiny::runApp()
-```
+   ```r
+   install.packages(c("shiny", "bslib", "DT", "shinyjs", "plotly",
+                      "data.table", "ggplot2", "patchwork"))
+   ```
 
-The app calls two external programs, located through environment variables:
+3. **Download PLINK 2 and GCTA**, the two programs the app calls, from
+   [PLINK 2](https://www.cog-genomics.org/plink/2.0/) and
+   [GCTA](https://yanglab.westlake.edu.cn/software/gcta/), and unzip each.
+4. **Start the app** in R, with the paths changed to where you put the files:
 
-```bash
-export PLINK2_PATH=/path/to/plink2
-export GCTA_PATH=/path/to/gcta64
-```
+   ```r
+   setwd("path/to/SweepGWAS")
+   Sys.setenv(PLINK2_PATH = "path/to/plink2",
+              GCTA_PATH = "path/to/gcta64")
+   shiny::runApp()
+   ```
 
-It requires the R packages `shiny`, `bslib`, `DT`, `shinyjs`, `plotly`,
-`data.table`, `ggplot2` and `patchwork`.
-
-Click **Load maize case-study example** to run the example dataset and
-confirm that your setup reproduces the expected result, given in
-[`example_data/README.md`](example_data/README.md). The run takes about two to
-three minutes, most of it in COJO.
+   If both programs are already on your system path, the `Sys.setenv` line
+   is not needed.
+5. **Check the setup.** Click **Load maize case-study example** and compare
+   the result with the one given in
+   [`example_data/README.md`](example_data/README.md). The run takes about two
+   to three minutes, most of it in COJO.
 
 ## Input requirements
 
